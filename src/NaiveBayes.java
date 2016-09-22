@@ -1,57 +1,113 @@
-
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map.Entry;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- *
- * @author tasnim
- */
 public class NaiveBayes {
     ArrayList<Document> docs;
     ArrayList<String> topics;
-    double smoothingFactor;
+    double smoothingFactor;    
+    /** populated and calculated while training **/
+    HashSet<String> words;
     double[] logPriorProbs;
-    double[][] logCondProbs;
+    int numDocs;
+    int numUniqueWords; 
+    HashMap<String, Document> classDocs;
+    //double[][] logCondProbs;
     
-
     public NaiveBayes(double smoothingFactor, ArrayList<String> topics) {
         this.smoothingFactor = smoothingFactor;
         this.topics = topics;
-        logPriorProbs = new double[topics.size()];
     }
     
     
     public void train(ArrayList<Document> docs){
         this.docs = docs;
-        
-        
-        //build 1 document for each topic        
-        HashMap<String, Document> classDocs = new HashMap<>();
+        this.numDocs = docs.size();
+        this.logPriorProbs = new double[topics.size()];
+        this.words = new HashSet<>();
+                
+        /* build 1 document for each topic        */
+        this.classDocs = new HashMap<>();
         for(String topic: topics){
             classDocs.put(topic, new Document(new HashMap<String, Integer>(), topic));
         }
             
-        //merge        
+        /* merge documents of same class, also count & store P(C1), P(C2)...   */
         for (Iterator<Document> iterator = docs.iterator(); iterator.hasNext();) {
             Document doc = iterator.next();            
-            Document d = classDocs.get((String)doc.topicName);
-            d.merge(doc);
+            //count
+            logPriorProbs[topics.indexOf((String)doc.topicName)] += 1;
+            
+            Document classDoc = classDocs.get((String)doc.topicName);
+            classDoc.merge(doc);
         }
         
-        for(String ss : classDocs.keySet()){
-            System.out.println(ss);
-            System.out.println(classDocs.get((String)ss).wordMap);
-            System.out.println();
+        /* calculate and store total word count */
+        for(String topic : classDocs.keySet()){
+            System.out.println(topic);
+            Document topicDoc = classDocs.get((String)topic);
+            
+            for (Entry<String, Integer> entry : topicDoc.wordMap.entrySet()){
+                String word = entry.getKey();
+                words.add(word);    //add unique words of this class (topic)
+                
+                Integer wordCount = entry.getValue();
+                topicDoc.totalWordCount += wordCount; // count all words of this class (topic) [multiple times result in multiple counts]
+            }            
+                        
+            //System.out.println(topicDoc.wordMap);
+            System.out.println("Word Count: "+ topicDoc.totalWordCount);
             System.out.println();
         }
+        numUniqueWords = words.size();
         
-        logCondProbs = new double[topics.size()][docs.size()];
+        /* calculate and store log P(C1), log P(C2)...   */
+        double tot = 0;
+        for (int i = 0; i < logPriorProbs.length; i++) {            
+            double logPriorProb = logPriorProbs[i];
+            if(logPriorProb != 0){                
+                logPriorProb = Math.log((logPriorProb*1.0)/(numDocs*1.0));
+                //tot+= logPriorProb;
+            }
+            System.err.println(logPriorProb + " " + tot);
+        }
+        
+    }
+    
+    
+    public String test(Document testDoc) {
+        String chosenTopic = null;
+        double maxProb = Double.NEGATIVE_INFINITY;
+        
+        for(String topic: topics){
+            //get logCondProbs
+            double logCondProb = 0.0;
+            for(String w : testDoc.wordMap.keySet()){
+                //n(w1)(c1), the count of this word w, in class(topic) topic.
+                Document topicDoc = this.classDocs.get((String)topic);
+                int numWordCount = 0;
+                try {                    
+                    numWordCount = topicDoc.wordMap.get((String)w);
+                } catch (Exception e) {
+                   // e.printStackTrace();
+                    System.out.println("WEEEEEEEEEEEEEEEEEEEEEEEEEEEE$$$ " + w);
+                }
+                
+                //calculate logCondProb
+                double logP_W_given_C = Math.log((numWordCount + 1.0*smoothingFactor)/(topicDoc.totalWordCount + numUniqueWords*smoothingFactor*1.0));
+                logCondProb += logP_W_given_C;
+
+            }
+            logCondProb += this.logPriorProbs[topics.indexOf((String)topic)];
+            System.out.println("logCondProb: "+ logCondProb);
+            if(logCondProb > maxProb){
+                chosenTopic = topic;
+                maxProb = logCondProb;
+            }
+        }
+        System.out.println("Chosen: "+ chosenTopic + "actual" + testDoc.topicName);
+        return chosenTopic;
     }
 }

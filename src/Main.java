@@ -13,7 +13,6 @@ public class Main {
     static String testFilePath = "./Data/Test/";
 
     public static void main(String[] args) {
-        double TRAIN_PERCENT = .8;
         
         
         ArrayList<String> topics = new ArrayList<>();
@@ -33,6 +32,7 @@ public class Main {
         }
 
         
+        double TRAIN_PERCENT = .8;
         int numDocs = docs.size();
         int testStartIndex = (int) Math.floor(docs.size() * TRAIN_PERCENT);
         ArrayList<Document> trainingList = new ArrayList<>();
@@ -47,7 +47,17 @@ public class Main {
 
         NaiveBayes NB = new NaiveBayes(1, topics);
         NB.train(trainingList);
-        //NB.test(testList);
+        int correct = 0;
+        int wrong = 0;
+        
+        for(Document testDoc : trainingList){            
+            if(NB.test(testDoc) == testDoc.topicName){
+                correct++;
+            }else{
+                wrong++;
+            }
+        }
+        System.out.println("Accuracy: " + (correct*1.0)/(correct+wrong) );
 
     }
 

@@ -1,12 +1,11 @@
 
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 public class Document {
 
     String topicName;
     HashMap<String, Integer> wordMap = new HashMap<String, Integer>();
-    private Object selects;
+    int totalWordCount = 0;
 
     public Document(HashMap<String, Integer> wordMap, String topicName) {
         this.wordMap = wordMap;
