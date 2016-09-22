@@ -5,19 +5,22 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class XMLRead extends FileRead {
 
-    public ArrayList<String> documents;
+    public ArrayList<Document> documents;
     public Set<String> blacklist;
+    public String topic;
 
-    public XMLRead(String file, ArrayList<String> documents, Set<String> blacklist) {
+    public XMLRead(String file, ArrayList<Document> documents, Set<String> blacklist, String topic) {
         super(file);
         this.documents = documents;
         this.blacklist = blacklist;
+        this.topic = topic;
     }
 
     @Override
@@ -28,13 +31,15 @@ public class XMLRead extends FileRead {
 
             //extract body 
             try {
+                // strb = line.substring(line.indexOf("Body=\"&lt;p&gt;") + "Body=\"&lt;p&gt;".length(), line.indexOf("&lt;/p&gt;&#xA;"));
                 strb = line.substring(line.indexOf("Body=\"") + "Body=\"".length(), line.indexOf(" OwnerUserId=\""));
             } catch (Exception e) {
                 return;
             }
 
-            // strb = line.substring(line.indexOf("Body=\"&lt;p&gt;") + "Body=\"&lt;p&gt;".length(), line.indexOf("&lt;/p&gt;&#xA;"));
+            //remove some more 
             strb = strb.replaceAll("&#xA", " ");
+            
             //remove tags <>
             strb = strb.replaceAll("((&lt;)(strong)(&gt;))", "");  
             strb = strb.replaceAll("((&lt;)(/strong)(&gt;))", "");
@@ -42,13 +47,13 @@ public class XMLRead extends FileRead {
             strb = strb.replaceAll("((&lt;)(/blockquote)(&gt;))", "");
             strb = strb.replaceAll("&lt;img src=&quot;", "");
             strb = strb.replaceAll("alt=&quot;", "");
-            strb = strb.replaceAll("rel=&quot;nofollow&quot;", "");
-            
+            strb = strb.replaceAll("rel=&quot;nofollow&quot;", "");            
             strb = strb.replaceAll("((&lt;)[^&gt;]+(&gt;))", "");
             
             //remove alone <, or alone >
             strb = strb.replaceAll("((&lt;)|(&gt;)|(&quot;))", " ");
 
+            //remove some more
             strb = strb.replaceAll("((a href=)|(/a&gt;))", " ");
 
             //remove url
@@ -57,8 +62,7 @@ public class XMLRead extends FileRead {
             //remove extra characters
             strb = strb.replaceAll("(@)|(;)|(:)|(\\()|(\\))|(\")|(\\?)|(\\!)|(\\{)|(\\})|(\\[)|(\\])", " ");
            
-            //strb = strb.replaceAll("[\\w]+.", "\{1}");
-
+            //remove words. or words, words, 
             Pattern p = Pattern.compile("([\\s][\\w]+)((\\,)|(\\.))");
 		Matcher m = p.matcher(strb);
 
@@ -69,8 +73,7 @@ public class XMLRead extends FileRead {
                         //System.out.println("***" + m.group(1));
 		}
 		m.appendTail(result);
-		//System.out.println("***" + result);
-                
+		//System.out.println("***" + result);                
             strb = new String(result);    
                 
             strb = strb.replaceAll(",", " ");   
@@ -81,22 +84,44 @@ public class XMLRead extends FileRead {
             //make lowercase
             strb = strb.toLowerCase();
 
+            //remove pronoun, prepositions, conjunctions
             for (String blackwords : blacklist) {
                 strb = strb.replace(" " + blackwords + " ", " ");
             }
 
+            //separate the words
             String[] words = strb.split("(\\s+)");
+            for (int i = 0; i < words.length; i++) {
+                words[i] = words[i].trim();
+                //words[i] = words[i].concat("########");
+            }
             ArrayList<String> wordsList = new ArrayList<>(Arrays.asList(words));
-
-            for (String blackword : blacklist) {
+                 
+            
+            //remove pronoun, prepositions, conjunctions (again)
+            for (String blackword : blacklist) {                
                 wordsList.remove((String) blackword);
             }
-            strb = "";
+            
+//            strb = "";
+//            for (String w : wordsList) {
+//                strb = strb + w;
+//            }
+//            System.out.println(strb);
+//            
+            HashMap<String, Integer> wordCounts = new HashMap<String, Integer>();
             for (String w : wordsList) {
-                strb = strb + " " + w;
+                Integer i = wordCounts.get(w);
+                if (i == null) {
+                    wordCounts.put(w, 1);
+                } else {
+                    wordCounts.put(w, i + 1);
+                }
             }
-
-            this.documents.add(strb);
+            if(wordCounts.size()!=0){
+                this.documents.add(new Document(wordCounts, topic));
+            }
+            
 
         }
 
