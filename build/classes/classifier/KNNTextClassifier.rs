@@ -1,2 +1,0 @@
-classifier.KNNTextClassifier
-classifier.DocDistanceTuple
