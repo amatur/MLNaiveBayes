@@ -49,6 +49,7 @@ public class NaiveBayes {
             System.out.println(topic);
             Document topicDoc = classDocs.get((String)topic);
             
+            
             for (Entry<String, Integer> entry : topicDoc.wordMap.entrySet()){
                 String word = entry.getKey();
                 words.add(word);    //add unique words of this class (topic)
@@ -56,7 +57,8 @@ public class NaiveBayes {
                 Integer wordCount = entry.getValue();
                 topicDoc.totalWordCount += wordCount; // count all words of this class (topic) [multiple times result in multiple counts]
             }            
-                        
+            
+            //if(topic.equals("Anime"))
             //System.out.println(topicDoc.wordMap);
             System.out.println("Word Count: "+ topicDoc.totalWordCount);
             System.out.println();
@@ -64,14 +66,14 @@ public class NaiveBayes {
         numUniqueWords = words.size();
         
         /* calculate and store log P(C1), log P(C2)...   */
-        double tot = 0;
+        //double tot = 0;
         for (int i = 0; i < logPriorProbs.length; i++) {            
             double logPriorProb = logPriorProbs[i];
             if(logPriorProb != 0){                
                 logPriorProb = Math.log((logPriorProb*1.0)/(numDocs*1.0));
                 //tot+= logPriorProb;
             }
-            System.err.println(logPriorProb + " " + tot);
+            //System.out.println(logPriorProb + " " + tot);
         }
         
     }
@@ -92,7 +94,6 @@ public class NaiveBayes {
                     numWordCount = topicDoc.wordMap.get((String)w);
                 } catch (Exception e) {
                    // e.printStackTrace();
-                    System.out.println("WEEEEEEEEEEEEEEEEEEEEEEEEEEEE$$$ " + w);
                 }
                 
                 //calculate logCondProb
@@ -101,13 +102,13 @@ public class NaiveBayes {
 
             }
             logCondProb += this.logPriorProbs[topics.indexOf((String)topic)];
-            System.out.println("logCondProb: "+ logCondProb);
+            //System.out.println("logCondProb: "+ logCondProb);
             if(logCondProb > maxProb){
                 chosenTopic = topic;
                 maxProb = logCondProb;
             }
         }
-        System.out.println("Chosen: "+ chosenTopic + "actual" + testDoc.topicName);
+        //System.out.println("Chosen: "+ chosenTopic + ", Actual: " + testDoc.topicName);
         return chosenTopic;
     }
 }

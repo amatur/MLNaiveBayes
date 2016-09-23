@@ -1,4 +1,3 @@
-
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -105,10 +104,10 @@ public class XMLRead extends FileRead {
             
 //            strb = "";
 //            for (String w : wordsList) {
-//                strb = strb + w;
+//                strb = strb + " ##### " + w;
 //            }
 //            System.out.println(strb);
-//            
+            
             HashMap<String, Integer> wordCounts = new HashMap<String, Integer>();
             for (String w : wordsList) {
                 Integer i = wordCounts.get(w);
