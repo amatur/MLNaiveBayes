@@ -1,5 +1,7 @@
+import classifier.nb.Document;
+import classifier.nb.NaiveBayes;
+import classifier.knn.KNNTextClassifier;
 import JSci.maths.statistics.TDistribution;
-import classifier.KNNTextClassifier;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -8,16 +10,10 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 
-/* collected
- Best SF: 0.39599999999999946 Best Acc: 98.11122770199371
- Best SF: 0.39599999999999946Best Acc: 98.11122770199371
- Best SF: 0.31600000000000017 Best Acc: 98.11122770199371
- */
-
 public class Main {
 
     /* Test Values */
-    static int NUM_TRAINING_ROW = 500;
+    static int NUM_TRAINING_ROW = 5000;
     static int ROW_EACH_ITER = 100;
     static int NUM_ITERATIONS = 50;
     static int NUM_TEST_DOCS = 50;
@@ -25,7 +21,7 @@ public class Main {
 
     /* Best Values */
     static double BEST_SF = 0.31600000000000017;
-    static double BEST_K = 47;
+    static int BEST_K = 47;
     
     /* File Paths */
     static String blacklistFile = "blacklist.txt";
@@ -33,10 +29,10 @@ public class Main {
     static String trainFilePath = "./Data/Training/";
     static String testFilePath = "./Data/Test/";
 
-    public static ArrayList<classifier.Document> docConverter(ArrayList<Document> docsNaiveBayes) {
-        ArrayList<classifier.Document> docsKNN = new ArrayList<>();
+    public static ArrayList<classifier.knn.Document> docConverter(ArrayList<Document> docsNaiveBayes) {
+        ArrayList<classifier.knn.Document> docsKNN = new ArrayList<>();
         for (Document d : docsNaiveBayes) {
-            classifier.Document knnDoc = new classifier.Document(d.topicName);
+            classifier.knn.Document knnDoc = new classifier.knn.Document(d.topicName);
             for (Entry e : d.wordMap.entrySet()) {
                 knnDoc.addWord((String) e.getKey(), (Integer) e.getValue());
             }
@@ -65,8 +61,11 @@ public class Main {
             new XMLRead(testFilePath.concat(topic).concat(".xml"), testDocs, blacklist, topic).processFile(NUM_TEST_DOCS);
         }
 
-        //double bestSmoothingFactor = NaiveBayes.findBestSmoothingFactor(trainDocs, testDocs, topics);
-       
+        /**** NB Output ****
+        double bestSmoothingFactor = NaiveBayes.findBestSmoothingFactor(trainDocs, testDocs, topics);
+        ********************/
+        
+        /**** KNN Output ****
         int[] ks = {1, 3, 5};
         for (int k : ks) {
             KNNTextClassifier KNN1 = new KNNTextClassifier(docConverter(trainDocs), docConverter(testDocs), k, KNNTextClassifier.EUCLEDIAN);
@@ -79,10 +78,10 @@ public class Main {
             System.out.printf("k=%d,\t Euclidean:\t %.4f\n", k, KNN1.test());
             System.out.printf("k=%d,\t Hamming:\t %.4f\n", k, KNN2.test());
             System.out.printf("k=%d,\t Cosine:\t %.4f\n", k, KNN3.test());
-
         }
+        *********************/
         
-        /*
+        ///*
         Sampst sampstNB = new Sampst();
         Sampst sampstKNN = new Sampst();
 
@@ -93,11 +92,10 @@ public class Main {
                 for (int k = 0; k < topics.size(); k++) {
                     trainDocsSubset.add(trainDocs.get(k * NUM_TRAINING_ROW + j));
                 }
-
             }
 
             NaiveBayes NB = new NaiveBayes(BEST_SF, topics, trainDocsSubset);
-            KNNTextClassifier KNN = new KNNTextClassifier(docConverter(trainDocsSubset), docConverter(testDocs), 43, KNNTextClassifier.COSINE);
+            KNNTextClassifier KNN = new KNNTextClassifier(docConverter(trainDocsSubset), docConverter(testDocs), BEST_K, KNNTextClassifier.COSINE);
             KNN.train();
 
             double accKNN = KNN.test();
@@ -124,16 +122,12 @@ public class Main {
             
             if(Sampst.rejectNullHypothesis(tScore, tCritical)){
                 System.out.printf("Diﬀerence between the overall mean of KNN and NB is less than %f\n", D);
-               
             }else{
                 System.out.printf("We can't reject that diﬀerence between the overall mean of KNN and NB is more than %f\n", D);
-
             }
             System.out.println("");
         }
-        */
+        //*/
     }
-    
     //*/
-    
 }

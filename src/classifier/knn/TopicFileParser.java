@@ -1,4 +1,4 @@
-package classifier;
+package classifier.knn;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

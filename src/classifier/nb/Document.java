@@ -1,11 +1,12 @@
+package classifier.nb;
 
 import java.util.HashMap;
 
 public class Document {
 
-    String topicName;
-    HashMap<String, Integer> wordMap = new HashMap<String, Integer>();
-    int totalWordCount = 0;
+    public String topicName;
+    public HashMap<String, Integer> wordMap = new HashMap<String, Integer>();
+    public int totalWordCount = 0;
 
     public Document(HashMap<String, Integer> wordMap, String topicName) {
         this.wordMap = wordMap;

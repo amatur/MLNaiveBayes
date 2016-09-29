@@ -1,4 +1,4 @@
-package classifier;
+package classifier.knn;
 
 import java.util.ArrayList;
 import java.util.HashMap;

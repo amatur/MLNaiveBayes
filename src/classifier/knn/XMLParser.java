@@ -1,4 +1,4 @@
-package classifier;
+package classifier.knn;
 
 import java.io.File;
 import java.io.IOException;
