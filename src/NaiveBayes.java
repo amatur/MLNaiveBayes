@@ -1,4 +1,7 @@
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -14,7 +17,6 @@ public class NaiveBayes {
     int numDocs;
     int numUniqueWords; 
     HashMap<String, Document> classDocs;
-    //double[][] logCondProbs;
     
     public NaiveBayes(double smoothingFactor, ArrayList<String> topics) {
         this.smoothingFactor = smoothingFactor;
@@ -23,6 +25,8 @@ public class NaiveBayes {
     
     
     public void train(ArrayList<Document> docs){
+        
+        
         this.docs = docs;
         this.numDocs = docs.size();
         this.logPriorProbs = new double[topics.size()];
@@ -46,7 +50,7 @@ public class NaiveBayes {
         
         /* calculate and store total word count */
         for(String topic : classDocs.keySet()){
-            System.out.println(topic);
+            //System.out.println(topic);
             Document topicDoc = classDocs.get((String)topic);
             
             
@@ -58,10 +62,9 @@ public class NaiveBayes {
                 topicDoc.totalWordCount += wordCount; // count all words of this class (topic) [multiple times result in multiple counts]
             }            
             
-            //if(topic.equals("Anime"))
             //System.out.println(topicDoc.wordMap);
-            System.out.println("Word Count: "+ topicDoc.totalWordCount);
-            System.out.println();
+            //System.out.println("Word Count: "+ topicDoc.totalWordCount);
+            //System.out.println();
         }
         numUniqueWords = words.size();
         
@@ -71,13 +74,21 @@ public class NaiveBayes {
             double logPriorProb = logPriorProbs[i];
             if(logPriorProb != 0){                
                 logPriorProb = Math.log((logPriorProb*1.0)/(numDocs*1.0));
+                logPriorProbs[i] = logPriorProb;
                 //tot+= logPriorProb;
             }
             //System.out.println(logPriorProb + " " + tot);
         }
+        DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+        System.out.print(dateFormat.format(new Date()) + " ");
+        System.out.println("Training completed.");
         
+        System.out.println("Number of docs: "+ numDocs);
     }
     
+    public void setSmoothingFactor(double sf){
+        this.smoothingFactor = sf;
+    }
     
     public String test(Document testDoc) {
         String chosenTopic = null;

@@ -1,3 +1,4 @@
+
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -30,25 +31,35 @@ public class XMLRead extends FileRead {
 
             //extract body 
             try {
-                // strb = line.substring(line.indexOf("Body=\"&lt;p&gt;") + "Body=\"&lt;p&gt;".length(), line.indexOf("&lt;/p&gt;&#xA;"));
-                strb = line.substring(line.indexOf("Body=\"") + "Body=\"".length(), line.indexOf(" OwnerUserId=\""));
+               strb = line.substring(line.indexOf("Body=\"") + "Body=\"".length());
+
+                //strb = line.substring(line.indexOf("Body=\"&lt;p&gt;") + "Body=\"&lt;p&gt;".length(), line.indexOf("&lt;/p&gt;&#xA"));
+                //strb = line.substring(line.indexOf("Body=\"") + "Body=\"".length(), line.indexOf(" OwnerUserId=\""));
             } catch (Exception e) {
+            }
+
+//            try {
+//                strb = line.substring(line.indexOf("Body=\"") + "Body=\"".length(), line.indexOf(" OwnerUserId=\""));
+//            } catch (Exception e) {
+//            }
+
+            if (strb == null) {
                 return;
             }
 
             //remove some more 
             strb = strb.replaceAll("&#xA", " ");
-            
+
             //remove tags <>
-            strb = strb.replaceAll("((&lt;)(strong)(&gt;))", "");  
+            strb = strb.replaceAll("((&lt;)(strong)(&gt;))", "");
             strb = strb.replaceAll("((&lt;)(/strong)(&gt;))", "");
-            strb = strb.replaceAll("((&lt;)(blockquote)(&gt;))", "");  
+            strb = strb.replaceAll("((&lt;)(blockquote)(&gt;))", "");
             strb = strb.replaceAll("((&lt;)(/blockquote)(&gt;))", "");
             strb = strb.replaceAll("&lt;img src=&quot;", "");
             strb = strb.replaceAll("alt=&quot;", "");
-            strb = strb.replaceAll("rel=&quot;nofollow&quot;", "");            
+            strb = strb.replaceAll("rel=&quot;nofollow&quot;", "");
             strb = strb.replaceAll("((&lt;)[^&gt;]+(&gt;))", "");
-            
+
             //remove alone <, or alone >
             strb = strb.replaceAll("((&lt;)|(&gt;)|(&quot;))", " ");
 
@@ -60,26 +71,29 @@ public class XMLRead extends FileRead {
 
             //remove extra characters
             strb = strb.replaceAll("(@)|(;)|(:)|(\\()|(\\))|(\")|(\\?)|(\\!)|(\\{)|(\\})|(\\[)|(\\])", " ");
-           
+
             //remove words. or words, words, 
             Pattern p = Pattern.compile("([\\s][\\w]+)((\\,)|(\\.))");
-		Matcher m = p.matcher(strb);
+            Matcher m = p.matcher(strb);
 
-		StringBuffer result = new StringBuffer();
-		while (m.find()) {
-			//System.out.println("Masking: " + m.group(2));
-			m.appendReplacement(result, m.group(1) );
-                        //System.out.println("***" + m.group(1));
-		}
-		m.appendTail(result);
-		//System.out.println("***" + result);                
-            strb = new String(result);    
-                
-            strb = strb.replaceAll(",", " ");   
-            strb = strb.replaceAll("\\.", " ");  
-            strb = strb.replaceAll("=", " ");   
-            strb = strb.replaceAll("/", " ");  
-                
+            StringBuffer result = new StringBuffer();
+            while (m.find()) {
+                //System.out.println("Masking: " + m.group(2));
+                m.appendReplacement(result, m.group(1));
+                //System.out.println("***" + m.group(1));
+            }
+            m.appendTail(result);
+            //System.out.println("***" + result);                
+            strb = new String(result);
+
+            strb = strb.replaceAll(",", " ");
+            strb = strb.replaceAll("\\.", " ");
+            strb = strb.replaceAll("=", " ");
+            strb = strb.replaceAll("/", " ");
+            strb = strb.replaceAll("'", " ");
+            strb = strb.replaceAll("\"", " ");
+            strb = strb.replaceAll("\\-", " ");
+
             //make lowercase
             strb = strb.toLowerCase();
 
@@ -95,19 +109,17 @@ public class XMLRead extends FileRead {
                 //words[i] = words[i].concat("########");
             }
             ArrayList<String> wordsList = new ArrayList<>(Arrays.asList(words));
-                 
-            
+
             //remove pronoun, prepositions, conjunctions (again)
-            for (String blackword : blacklist) {                
+            for (String blackword : blacklist) {
                 wordsList.remove((String) blackword);
             }
-            
+
 //            strb = "";
 //            for (String w : wordsList) {
 //                strb = strb + " ##### " + w;
 //            }
 //            System.out.println(strb);
-            
             HashMap<String, Integer> wordCounts = new HashMap<String, Integer>();
             for (String w : wordsList) {
                 Integer i = wordCounts.get(w);
@@ -117,10 +129,9 @@ public class XMLRead extends FileRead {
                     wordCounts.put(w, i + 1);
                 }
             }
-            if(wordCounts.size()!=0){
+            if (wordCounts.size() != 0) {
                 this.documents.add(new Document(wordCounts, topic));
             }
-            
 
         }
 
