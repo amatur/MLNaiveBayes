@@ -12,6 +12,7 @@ public class Document {
     
     HashMap wordList = null;
     String topic;
+    static HashMap wordToDocCount = new HashMap();
     
     public Document(String topic) {
         wordList = new HashMap();
@@ -96,12 +97,12 @@ public class Document {
         return distance;
     }
     
-    double cosineDistance(Document d) {
-        return (double)this.dotProduct(d) / (this.vectorLength() * d.vectorLength());
+    double cosineDistance(Document d, ArrayList<Document> allDocuments) {
+        return 1 - (double)this.dotProduct(d, allDocuments) / (double)(this.vectorLength(allDocuments) * d.vectorLength(allDocuments));
     }
     
-    private int dotProduct(Document d) {
-        int dp = 0;
+    private double dotProduct(Document d, ArrayList<Document> allDocuments) {
+        double dp = 0;
         HashSet<String> set = new HashSet<String>();
         for (Object obj : d.wordList.keySet())
             set.add((String)obj);
@@ -112,18 +113,42 @@ public class Document {
             Object o1 = d.wordList.get(str);
             Object o2 = this.wordList.get(str);
             if (o1 != null && o2 != null) {
-                dp += (Integer)(o1) * (Integer)(o2);
+                double idf;
+                if (Document.wordToDocCount.containsKey(str)) {
+                    idf = (double) Document.wordToDocCount.get(str);
+                } else {
+                     idf = Math.log(1.0*allDocuments.size()/countDocsContainingWord(allDocuments, str));
+                     Document.wordToDocCount.put(str, idf);
+                }
+                dp += idf * (Integer)(o1) * (Integer)(o2) * idf / (1.0 * this.wordList.size() * d.wordList.size() );
             }
         }
         return dp;
     }
     
-    private double vectorLength() {
-        int total = 0;
+    private static int countDocsContainingWord(ArrayList<Document> allDocs, String word) {
+        int count = 0;
+        for (Document d : allDocs) {
+            if (d.wordList.containsKey(word)) {
+                count ++;
+            }
+        }
+        return count;
+    }
+    
+    private double vectorLength(ArrayList<Document> allDocuments) {
+        double total = 0;
         for (Object o : this.wordList.keySet()) {
             String str = (String)o;
+            double idf;
+            if (Document.wordToDocCount.containsKey(str)) {
+                idf = (double) Document.wordToDocCount.get(str);
+            } else {
+                 idf = Math.log(1.0*allDocuments.size()/countDocsContainingWord(allDocuments, str));
+                 Document.wordToDocCount.put(str, idf);
+            }
             int val = (Integer)this.wordList.get(str);
-            total += val * val;
+            total += val * val * idf * idf / (1.0 * this.wordList.size() * this.wordList.size() );
         }
         return Math.sqrt(total);
     }

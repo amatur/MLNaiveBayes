@@ -36,7 +36,7 @@ public class KNNTextClassifier extends Classifier {
         this.choiceOfDistanceHeuristic = distanceChoice;
         
     }
-
+    
     @Override
     public void train() {
         // nothing to do for k-NN
@@ -49,12 +49,15 @@ public class KNNTextClassifier extends Classifier {
         for (Object obj : testList) {
             
             Document d = (Document)obj;
+            ArrayList<Document> allDocs = new ArrayList<Document>();
+            allDocs.add(d);
+            allDocs.addAll(this.trainingList);
             
             ArrayList<DocDistanceTuple> listToSort = new ArrayList<DocDistanceTuple>();
             for (Object obj1 : trainingList) {
                 Document d1 = (Document)obj1;
                 if (this.choiceOfDistanceHeuristic == KNNTextClassifier.COSINE)
-                    listToSort.add(new DocDistanceTuple(d1, (int)(1000*d1.cosineDistance(d))));
+                    listToSort.add(new DocDistanceTuple(d1, (int)(1000*d1.cosineDistance(d, allDocs))));
                 else if (this.choiceOfDistanceHeuristic == KNNTextClassifier.EUCLEDIAN)
                     listToSort.add(new DocDistanceTuple(d1, (int)(d1.euclideanDistance(d))));
                 else if (this.choiceOfDistanceHeuristic == KNNTextClassifier.HAMMING)
@@ -98,7 +101,7 @@ public class KNNTextClassifier extends Classifier {
         }
         
         //System.out.println("Success: " + success + " Failure: " + failure);
-        return 1.0 * success / (success + failure);
+        return 100.0 * success / (success + failure);
     }
     
 }

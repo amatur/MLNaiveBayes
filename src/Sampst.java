@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class Sampst {
+    
     public  ArrayList<Double> numbers;
     
     public Sampst(){
@@ -33,6 +34,11 @@ public class Sampst {
         }
         return sum;
     }
+    
+    /***
+     * 
+     * @return Population Variance (sigma^2)
+     */
     public  double variance()
     {
         double mean = avg();
@@ -42,13 +48,19 @@ public class Sampst {
         return temp/numbers.size();
     }
 
-    //sqrt(sigma square n)
+    /***
+     * 
+     * @return Population Standard Deviation (sigma)
+     */
     public double stddev()
     {
         return Math.sqrt(variance());
     }
     
-    //s^2(n)
+    /***
+     * 
+     * @return Sample Variance (s^2)
+     */
     public double sampleVariance()
     {
         double mean = avg();
@@ -59,7 +71,17 @@ public class Sampst {
             
         return temp/(numbers.size()-1);
     }
+    
+    /***
+     * 
+     * @return Sample Standard Deviation (s)
+     */
+    public double sampleStddev()
+    {
+        return Math.sqrt(sampleVariance());
+    }
 
+    
     public static double tScore(Sampst s1, Sampst s2)
     {
         //level of significance (1-alpha/2) = 0.005, 0.01, 0.05
@@ -68,9 +90,10 @@ public class Sampst {
         //0.005 => 2.678 (2.679951974)
         //0.010 => 2.403 (2.40489176)
         //0.050 => 1.676 (1.676550893)
-        //System.out.println("avg: "+s1.avg());
-        //System.out.println("avg2: "+s2.avg());
-        //System.err.println(s1.sampleVariance());
+        
+        System.out.println("NB Avg: "+ s1.avg() + " \t KNN Avg: " + s2.avg());
+        System.out.println("NB Var: "+ s1.sampleVariance() + " \t KNN Var: " + s2.sampleVariance());
+
         return (   (s1.avg() - s2.avg()) /  Math.sqrt(s1.sampleVariance()/s1.numbers.size() + s2.sampleVariance()/s2.numbers.size()) );
         
     }
@@ -101,4 +124,38 @@ public class Sampst {
             return true;
         }
     }
+    
+    
+    /**
+     * 
+     * private int n = 0;
+        private double sum = 0.0;
+        private double sumSqr = 0.0;
+        private double min = Double.POSITIVE_INFINITY;
+        private double max = Double.NEGATIVE_INFINITY;
+
+        public SampleStatistics() {}
+        public void update(double x) {
+                n++;
+                sum += x;
+                sumSqr += x*x;
+                min = Math.min(x, min);
+                max = Math.max(x, max);
+        }
+        public int getCount() {
+                return n;
+        }
+        public double getMean() {
+                return sum/n;
+        }
+        public double getVariance() {
+                return (sumSqr - sum*sum/n)/(n-1);
+        }
+        public double getMinimum() {
+                return min;
+        }
+        public double getMaximum() {
+                return max;
+        }
+     */
 }
