@@ -19,12 +19,36 @@ public class Document {
         this.topic = topic;
     }
     
-    public void addWord(String word, int frequency) {
+    public  void addWord(String word, int frequency) {
         wordList.put(word, frequency);
     }
     
     int getFrequency(String word) {
         return (int)wordList.get(word);
+    }
+    
+    static void removeDocFromMap(Document d) {
+        for (Object o : d.wordList.keySet()) {
+            String word = (String)o;
+            
+            Integer count = (Integer)Document.wordToDocCount.get(word);
+            if (count == null)
+                continue;
+            Document.wordToDocCount.remove(word);
+            if (count > 1)
+                Document.wordToDocCount.put(word, (int)count - 1);
+        }
+    }
+    
+    static void addDocToMap(Document d) {
+        for (Object o : d.wordList.keySet()) {
+            String word = (String)o;
+            Integer count = (Integer)Document.wordToDocCount.get(word);
+            if (count == null)
+                continue;
+            Document.wordToDocCount.remove(word);
+            Document.wordToDocCount.put(word, (int)count + 1);
+        }
     }
     
     void increaseFrequency(String word) {
@@ -113,26 +137,24 @@ public class Document {
             Object o1 = d.wordList.get(str);
             Object o2 = this.wordList.get(str);
             if (o1 != null && o2 != null) {
-                double idf;
-                if (Document.wordToDocCount.containsKey(str)) {
-                    idf = (double) Document.wordToDocCount.get(str);
-                } else {
-                     idf = Math.log(1.0*allDocuments.size()/countDocsContainingWord(allDocuments, str));
-                     Document.wordToDocCount.put(str, idf);
-                }
-                dp += idf * (Integer)(o1) * (Integer)(o2) * idf / (1.0 * this.wordList.size() * d.wordList.size() );
+                double idf = Math.log(1.0*allDocuments.size()/countDocsContainingWord(allDocuments, str));
+                dp += idf * (Integer)(o1) * (Integer)(o2) * idf;
             }
         }
         return dp;
     }
     
-    private static int countDocsContainingWord(ArrayList<Document> allDocs, String word) {
+    public static int countDocsContainingWord(ArrayList<Document> allDocs, String word) {
+        Integer retValue = (Integer)Document.wordToDocCount.get(word);
+        if (retValue != null)
+            return retValue;
         int count = 0;
         for (Document d : allDocs) {
             if (d.wordList.containsKey(word)) {
                 count ++;
             }
         }
+        Document.wordToDocCount.put(word, count);
         return count;
     }
     
@@ -140,15 +162,9 @@ public class Document {
         double total = 0;
         for (Object o : this.wordList.keySet()) {
             String str = (String)o;
-            double idf;
-            if (Document.wordToDocCount.containsKey(str)) {
-                idf = (double) Document.wordToDocCount.get(str);
-            } else {
-                 idf = Math.log(1.0*allDocuments.size()/countDocsContainingWord(allDocuments, str));
-                 Document.wordToDocCount.put(str, idf);
-            }
+            double idf = Math.log(1.0*allDocuments.size()/countDocsContainingWord(allDocuments, str));
             int val = (Integer)this.wordList.get(str);
-            total += val * val * idf * idf / (1.0 * this.wordList.size() * this.wordList.size() );
+            total += val * val * idf * idf ;
         }
         return Math.sqrt(total);
     }

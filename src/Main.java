@@ -1,3 +1,4 @@
+import JSci.maths.statistics.TDistribution;
 import classifier.KNNTextClassifier;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -15,15 +16,17 @@ import java.util.Set;
 
 public class Main {
 
-    /* File Paths */
-    static int NUM_TRAINING_ROW = 5000;
-    static int ROW_EACH_ITER = 500;
-    static int NUM_ITERATIONS = 10;
+    /* Test Values */
+    static int NUM_TRAINING_ROW = 500;
+    static int ROW_EACH_ITER = 100;
+    static int NUM_ITERATIONS = 50;
     static int NUM_TEST_DOCS = 50;
+    static double D = 0;
 
-    /* Naive Bayes Parameters */
+    /* Best Values */
     static double BEST_SF = 0.31600000000000017;
-
+    static double BEST_K = 47;
+    
     /* File Paths */
     static String blacklistFile = "blacklist.txt";
     static String topicFileName = "./Data/topics.txt";
@@ -41,7 +44,7 @@ public class Main {
         }
         return docsKNN;
     }
-
+    ///*
     public static void main(String[] args) {
 
         ArrayList<String> topics = new ArrayList<>();
@@ -63,7 +66,23 @@ public class Main {
         }
 
         //double bestSmoothingFactor = NaiveBayes.findBestSmoothingFactor(trainDocs, testDocs, topics);
+       
+        int[] ks = {1, 3, 5};
+        for (int k : ks) {
+            KNNTextClassifier KNN1 = new KNNTextClassifier(docConverter(trainDocs), docConverter(testDocs), k, KNNTextClassifier.EUCLEDIAN);
+            KNNTextClassifier KNN2 = new KNNTextClassifier(docConverter(trainDocs), docConverter(testDocs), k, KNNTextClassifier.HAMMING);
+            KNNTextClassifier KNN3 = new KNNTextClassifier(docConverter(trainDocs), docConverter(testDocs), k, KNNTextClassifier.COSINE);
+            KNN1.train();
+            KNN2.train();
+            KNN3.train();
+            
+            System.out.printf("k=%d,\t Euclidean:\t %.4f\n", k, KNN1.test());
+            System.out.printf("k=%d,\t Hamming:\t %.4f\n", k, KNN2.test());
+            System.out.printf("k=%d,\t Cosine:\t %.4f\n", k, KNN3.test());
 
+        }
+        
+        /*
         Sampst sampstNB = new Sampst();
         Sampst sampstKNN = new Sampst();
 
@@ -78,22 +97,43 @@ public class Main {
             }
 
             NaiveBayes NB = new NaiveBayes(BEST_SF, topics, trainDocsSubset);
-            KNNTextClassifier KNN = new KNNTextClassifier(docConverter(trainDocsSubset), docConverter(testDocs), 7, KNNTextClassifier.COSINE);
+            KNNTextClassifier KNN = new KNNTextClassifier(docConverter(trainDocsSubset), docConverter(testDocs), 43, KNNTextClassifier.COSINE);
             KNN.train();
-
 
             double accKNN = KNN.test();
             double accNB = NB.test(testDocs);
-            sampstNB.add(accNB);
             sampstKNN.add(accKNN);
-            System.out.printf("NB: %.4f%s \t KNN: %.4f%s\n", accNB, "%", accKNN, "%");
+            sampstNB.add(accNB);
+            System.out.printf("KNN: %.4f%s \t NB: %.4f%s\n", accKNN, "%", accNB, "%");
         }
 
-        System.out.println("T-score " + Sampst.tScore(sampstNB, sampstKNN));
-        System.out.println(Sampst.accept005(Sampst.tScore(sampstNB, sampstKNN)));
-        System.out.println(Sampst.accept01(Sampst.tScore(sampstNB, sampstKNN)));
-        System.out.println(Sampst.accept05(Sampst.tScore(sampstNB, sampstKNN)));
+        System.out.println("");
+        System.out.println("KNN Avg: "+ sampstKNN.avg() + " \t NB Avg: " + sampstNB.avg());
+        System.out.println("KNN Var: "+ sampstKNN.sampleVariance() + " \t NB Var: " + sampstNB.sampleVariance());
+        
+        double tScore = Sampst.tScore(sampstKNN, sampstNB, D);
+        System.out.println("\nT-score " + Math.abs(tScore));
+        
+        TDistribution tdist = new TDistribution((int) Math.round(Sampst.dof(sampstKNN, sampstNB)));
+        System.out.println("DOF: " + tdist.getDegreesOfFreedom());
+        
+        double levelSignificance[] = {0.005, 0.01, 0.05};
+        for (double alpha : levelSignificance) {
+            double tCritical  = tdist.inverse(1-alpha/2);
+            System.out.println("LEVEL OF SIGNIFICANE (alpha): " + alpha + ", tCritical="+tCritical);
+            
+            if(Sampst.rejectNullHypothesis(tScore, tCritical)){
+                System.out.printf("Diﬀerence between the overall mean of KNN and NB is less than %f\n", D);
+               
+            }else{
+                System.out.printf("We can't reject that diﬀerence between the overall mean of KNN and NB is more than %f\n", D);
 
+            }
+            System.out.println("");
+        }
+        */
     }
-
+    
+    //*/
+    
 }
