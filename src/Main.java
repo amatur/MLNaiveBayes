@@ -17,7 +17,7 @@ public class Main {
     static int ROW_EACH_ITER = 100;
     static int NUM_ITERATIONS = 50;
     static int NUM_TEST_DOCS = 50;
-    static double D = 0;
+    static double D = 4;
 
     /* Best Values */
     static double BEST_SF = 0.31600000000000017;
@@ -109,21 +109,21 @@ public class Main {
         System.out.println("KNN Avg: "+ sampstKNN.avg() + " \t NB Avg: " + sampstNB.avg());
         System.out.println("KNN Var: "+ sampstKNN.sampleVariance() + " \t NB Var: " + sampstNB.sampleVariance());
         
-        double tScore = Sampst.tScore(sampstKNN, sampstNB, D);
+        double tScore = Sampst.tScore(sampstNB, sampstKNN, D);
         System.out.println("\nT-score " + Math.abs(tScore));
         
-        TDistribution tdist = new TDistribution((int) Math.round(Sampst.dof(sampstKNN, sampstNB)));
+        TDistribution tdist = new TDistribution((int) Math.round(Sampst.dof(sampstNB, sampstKNN)));
         System.out.println("DOF: " + tdist.getDegreesOfFreedom());
         
         double levelSignificance[] = {0.005, 0.01, 0.05};
         for (double alpha : levelSignificance) {
             double tCritical  = tdist.inverse(1-alpha/2);
-            System.out.println("LEVEL OF SIGNIFICANE (alpha): " + alpha + ", tCritical="+tCritical);
+            System.out.println("LEVEL OF SIGNIFICANCE (alpha): " + alpha + ", tCritical="+tCritical);
             
             if(Sampst.rejectNullHypothesis(tScore, tCritical)){
-                System.out.printf("Diﬀerence between the overall mean of KNN and NB is less than %f\n", D);
+                System.out.printf("Diﬀerence between the overall mean of NB and KNN is less than %.4f%s\n", D, "%");
             }else{
-                System.out.printf("We can't reject that diﬀerence between the overall mean of KNN and NB is more than %f\n", D);
+                System.out.printf("We can't reject that diﬀerence between the overall mean of NB and KNN is more than %.4f%s\n", D, "%");
             }
             System.out.println("");
         }
